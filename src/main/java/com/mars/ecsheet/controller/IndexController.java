@@ -3,11 +3,14 @@ package com.mars.ecsheet.controller;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.mars.ecsheet.auth.Check;
 import com.mars.ecsheet.entity.WorkBookEntity;
 import com.mars.ecsheet.entity.WorkSheetEntity;
 import com.mars.ecsheet.repository.WorkBookRepository;
 import com.mars.ecsheet.repository.WorkSheetRepository;
 import com.mars.ecsheet.utils.SheetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,13 +33,15 @@ import java.util.Optional;
 @RestController
 public class IndexController {
 
+	private static final Logger log = LoggerFactory.getLogger(IndexController.class);
+
     @Autowired
     private WorkBookRepository workBookRepository;
 
     @Autowired
     private WorkSheetRepository workSheetRepository;
 
-    @GetMapping("index")
+    @GetMapping({"index","/"})
     public ModelAndView index() {
         List<WorkBookEntity> all = workBookRepository.findAll();
 
@@ -44,7 +49,11 @@ public class IndexController {
     }
 
 
+	/**
+	 * 此接口只有管理员用户可以使用
+	 */
     @GetMapping("index/create")
+    @Check
     public void create(HttpServletRequest request, HttpServletResponse response) throws IOException {
         WorkBookEntity wb = new WorkBookEntity();
         wb.setName("default");
@@ -53,6 +62,20 @@ public class IndexController {
         //生成sheet数据
         generateSheet(saveWb.getId());
         response.sendRedirect("/index/" + saveWb.getId());
+    }
+
+    @GetMapping("index/delete/{wbId}")
+    @Check
+    public Object delete(@PathVariable(value = "wbId") String wbId) {
+    	try{
+		    workBookRepository.deleteById(wbId);
+		    workSheetRepository.deleteById(wbId);
+	    } catch (Exception e) {
+		    log.error("删除表格失败，删除wbId:{}",wbId,e);
+		    return "false";
+	    }
+		return "success";
+
     }
 
 

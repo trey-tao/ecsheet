@@ -16,7 +16,14 @@ spring:
         expose-request-attributes: true
         expose-session-attributes: true
         expose-spring-macro-helpers: true
+        settings:
+          classic_compatible: true
     data:
       mongodb:
-        uri: mongodb://admin:123456@mongo:27017/wb?authSource=admin&readPreference=primary&ssl=false
+        uri: mongodb://test:123456@127.0.0.1:27017/esheet
 
+auth:
+  # 可访问的客户端
+  request: 127.0.0.1
+  # 可以进行管理员操作的客户端
+  admin: 127.0.0.1
